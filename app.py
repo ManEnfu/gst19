@@ -197,8 +197,11 @@ def registCommand(message, user, firstrun):
         if step == 11: 
             cursor.execute('select noref from gst19 where user_id=%s', (user,))
             noreft = cursor.fetchone()[0]
-            return ('Terima kasih telah mendaftar Ganeshout 2019! Berikut adalah nomor referensi pembayaran kamu:' + str(noreft) + '\n\nUntuk pembayaran tiketnya kamu bisa menghubungi:\n\n' +
-                'Vailovaya\nidline: vailovayash\n\nHanziz\nidline: hanziz\n\nDavita\nidline: davitaf9\n\nD\'lora\nidline: loraloreng')
+            return ('Terima kasih telah mendaftar Ganeshout 2019! Berikut adalah nomor referensi pembayaran kamu: ' + str(noreft) + '\n\nUntuk pembayaran tiketnya kamu bisa mentransfer ke rekening di bawah dan mengirimkan bukti pembayaran dengan nomor referensi yang kamu dapatkan barusan ke salah satu CP di bawah ini:\n\n' +
+                'Vailovaya\nidline: vailovayash\n1330015264856 (mandiri) a.n. Vailovaya Sinya H\n\n' + 
+                'Hanziz\nidline: hanziz\n2221-01-017359-50-1 (BRI) a.n. Muhammad Raihan Aziz\n\n' + 
+                'Davita\nidline: davitaf9\n0953815611 (BCA) a.n. Davita Fauziyyah Widodo\n\n' + 
+                'D\'lora\nidline: loraloreng\n733523132 (BNI) a.n. D\'lora Barada Wahab')
                     
 @app.route("/callback", methods=['POST'])
 def callback():
