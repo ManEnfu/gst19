@@ -333,10 +333,13 @@ def handle_text_message(event):
             if step > 0 and step < 11:
                 reply = "Kamu belum menyelesaikan pendaftaran!"
             elif bayar == 1:
-                cursor.execute('select notiket from gst19 where user_id=%s', (id,))
-                nomortiket = cursor.fetchone()[0]
+                cursor.execute('select notiket, bidang, test from gst19 where user_id=%s', (id,))
+                fobj = cursor.fetchone()
+                nomortiket, jbidang, jtest = fobj[0], fobj[1], fobj[2]
                 reply = ("Hai, " + namalengkap + '! ini tiket masuk Ganeshout kamu!\n\nPerlihatkan tiket ini ke kakak yang ada di meja registrasi ulang saat hari-H ya!\n\n' +
-                    'Nama: ' + namalengkap + '\nNo. Tiket: ' + nomortiket)
+                    'Nama: ' + namalengkap + '\nNo. Tiket: ' + nomortiket + '\n' + jbidang + ' - ' + jtest)
+                if jtest.upper() == 'CBT':
+                    reply += '\n\nJangan lupa untuk membawa laptop atau smartphone saat hari-H!'
             else: #belum bayar
                 reply = ("Hai, " + namalengkap + '! Sepertinya kamu belum bayar tiket ya?\n\nKalo merasa udah bayar, segera lakukan konfirmasi pembayaran ke kakak CP nya ya..' +
                     '\n\nKalo udah konfirmasi juga, tunggu aja ya..')
