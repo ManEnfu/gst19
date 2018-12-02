@@ -167,8 +167,8 @@ def registCommand(message, user, firstrun):
                     fobjglv = cursor.fetchone()
                     cursor.execute('select test from gst19 where user_id=%s', (user,))
                     jtest = cursor.fetchone()[0]
-                    count == fobjglv[0]
-                    countcbt == fobjglv[1]
+                    count = fobjglv[0]
+                    countcbt = fobjglv[1]
                     step += 1
                     count += 1
                     if jtest.upper() == 'CBT'
