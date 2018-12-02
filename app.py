@@ -32,7 +32,7 @@ cursor.execute('CREATE TABLE IF NOT EXISTS glv(uniq text, PRIMARY KEY(uniq), pre
 cursor.execute('SELECT EXISTS(SELECT uniq FROM glv WHERE uniq=%s)', ('u',))
 if (not cursor.fetchone()[0]):
     cursor.execute("INSERT into glv(uniq, presale, count, count1, countb, count2, count3) values (%s, 1, 0, 0, 0, 0, 0);", ('u',))
-cursor.execute('ALTER TABLE glv ADD IF NOT EXIST countcbt integer DEFAULT 0')
+    cursor.execute('ALTER TABLE glv ADD countcbt integer DEFAULT 0')
 cursor.execute("CREATE TABLE IF NOT EXISTS gst19(user_id text, PRIMARY KEY(user_id), state integer DEFAULT 0, nama text, sekolah text, no_hp text, id_line text, bidang text, test text, fakultas1 text, fakultas2 text, fakultas3 text, presale integer DEFAULT 0, noref text, bayar integer DEFAULT 0, notiket text, stamp timestamp);")
 
 questions = {
