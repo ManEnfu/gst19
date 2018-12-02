@@ -154,31 +154,30 @@ def registCommand(message, user, firstrun):
     if not firstrun:
         if (stepVar[step] is not False): # Normal processes
             if (step in optional and message == '-') or ((step not in reRegex) and (step not in chList)) or (step in reRegex and re.match(reRegex[step], message)) or ((step in chList) and (message.upper() in chList[step])):
-                if step == 6:
-                    cursor.execute('select countcbt from glv where uniq=%s', ('u'))
-                    countcbt = cursor.fetchone()[0]
-                    if countcbt < 150:
-                        countcbt += 1
-                        cursor.execute(sql.SQL("update gst19 set {}=%s where user_id=%s").format(sql.Identifier(stepVar[step])), (message, user))
-                        cursor.execute('update glv set countcbt=%s where uniq=%s', (countcbt, 'u'))
-                        step = nextStep[step]
-                        cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
-                    else:
-                        reply += 'Kuota untuk CBT sudah penuh! silakan pilih tipe test PBT.\n\n'
-                else:
-                    cursor.execute(sql.SQL("update gst19 set {}=%s where user_id=%s").format(sql.Identifier(stepVar[step])), (message, user))
-                    step = nextStep[step]
-                    cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
+                cursor.execute(sql.SQL("update gst19 set {}=%s where user_id=%s").format(sql.Identifier(stepVar[step])), (message, user))
+                step = nextStep[step]
+                cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
             else:
                 if (abs(step) in faultyReplies):
                     reply += faultyReplies[abs(step)]
         else: # uniq processes
             if step == 10:
                 if message.lower() == 'konfirmasi':
-                    cursor.execute('SELECT count from glv where  uniq=%s', ('u',))
-                    count = cursor.fetchone()[0]
+                    cursor.execute('SELECT count, countcbt from glv where  uniq=%s', ('u',))
+                    fobjglv = cursor.fetchone()
+                    cursor.execute('select test from gst19 where user_id=%s', (user,))
+                    jtest = cursor.fetchone()[0]
+                    count == fobjglv[0]
+                    countcbt == fobjglv[1]
                     step += 1
                     count += 1
+                    if jtest.upper() == 'CBT'
+                        if countcbt < 150:
+                            countcbt += 1
+                            cursor.execute('update glv set countcbt=%s where uniq=%s', (countcbt, 'u'))
+                        else:
+                            cursor.execute('update gst19 set test=%s where user_id=%s', ('PBT', user))
+                            reply += 'Kuota CBT penuh! kamu akan dialihkan ke PBT.\n\n'
                     cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
                     cursor.execute("update gst19 set stamp=statement_timestamp() where user_id=%s", (user,))
                     cursor.execute('update glv set count=%s where uniq=%s', (count, 'u'))
@@ -216,11 +215,12 @@ def registCommand(message, user, firstrun):
         if step == 11: 
             cursor.execute('select noref from gst19 where user_id=%s', (user,))
             noreft = cursor.fetchone()[0]
-            return ('Terima kasih telah mendaftar Ganeshout 2019! Berikut adalah nomor referensi pembayaran kamu: ' + str(noreft) + '\n\nUntuk pembayaran tiketnya kamu bisa mentransfer ke rekening di bawah dan mengirimkan bukti pembayaran dengan nomor referensi yang kamu dapatkan barusan ke salah satu CP di bawah ini:\n\n' +
+            reply += ('Terima kasih telah mendaftar Ganeshout 2019! Berikut adalah nomor referensi pembayaran kamu: ' + str(noreft) + '\n\nUntuk pembayaran tiketnya kamu bisa mentransfer ke rekening di bawah dan mengirimkan bukti pembayaran dengan nomor referensi yang kamu dapatkan barusan ke salah satu CP di bawah ini:\n\n' +
                 'Vailovaya\nidline: vailovayash\n1330015264856 (mandiri) a.n. Vailovaya Sinya H\n\n' + 
                 'Hanziz\nidline: hanziz\n2221-01-017359-50-1 (BRI) a.n. Muhammad Raihan Aziz\n\n' + 
                 'Davita\nidline: davitaf9\n0953815611 (BCA) a.n. Davita Fauziyyah Widodo\n\n' + 
                 'D\'lora\nidline: loraloreng\n733523132 (BNI) a.n. D\'lora Barada Wahab')
+            return reply
                     
 @app.route("/callback", methods=['POST'])
 def callback():
