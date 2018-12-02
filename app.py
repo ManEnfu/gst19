@@ -262,6 +262,8 @@ def handle_text_message(event):
             nopresale = fobj[0]
             prescount = fobj[nopresale]
             reply = 'Tiket Ganeshout 2019 Presale ' + str(nopresale) + ' tersisa ' + str(kuotapresale[nopresale] - prescount) + ' lembar.'
+        elif text.lower() == 'tutorial':
+            reply = 'https://youtu.be/FPbLwgzQTeI'
         elif txsp[0] == '/gst19op':
             if txsp[1] == 'statref':
                 cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where noref=%s);', (txsp[2],))
@@ -349,6 +351,8 @@ def handle_text_message(event):
             cursor.execute('select count' + str(nopresale) + ' from glv where  uniq=%s', ('u',))
             prescount = cursor.fetchone()[0]
             reply = 'Tiket Ganeshout 2019 Presale ' + str(nopresale) + ' tersisa ' + str(kuotapresale[nopresale] - prescount) + ' lembar.'
+        elif text.lower() == 'tutorial':
+            reply = 'https://youtu.be/FPbLwgzQTeI'
         elif txsp[0] == '/gst19op':
             if txsp[1] == 'statref':
                 cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where noref=%s);', (txsp[2],))
