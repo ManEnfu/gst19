@@ -171,7 +171,7 @@ def registCommand(message, user, firstrun):
                     countcbt = fobjglv[1]
                     step += 1
                     count += 1
-                    if jtest.upper() == 'CBT'
+                    if jtest.upper() == 'CBT':
                         if countcbt < 150:
                             countcbt += 1
                             cursor.execute('update glv set countcbt=%s where uniq=%s', (countcbt, 'u'))
