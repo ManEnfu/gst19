@@ -32,6 +32,7 @@ cursor.execute('CREATE TABLE IF NOT EXISTS glv(uniq text, PRIMARY KEY(uniq), pre
 cursor.execute('SELECT EXISTS(SELECT uniq FROM glv WHERE uniq=%s)', ('u',))
 if (not cursor.fetchone()[0]):
     cursor.execute("INSERT into glv(uniq, presale, count, count1, countb, count2, count3) values (%s, 1, 0, 0, 0, 0, 0);", ('u',))
+cursor.execute('ALTER TABLE glv ADD IF NOT EXIST countcbt integer DEFAULT 0')
 cursor.execute("CREATE TABLE IF NOT EXISTS gst19(user_id text, PRIMARY KEY(user_id), state integer DEFAULT 0, nama text, sekolah text, no_hp text, id_line text, bidang text, test text, fakultas1 text, fakultas2 text, fakultas3 text, presale integer DEFAULT 0, noref text, bayar integer DEFAULT 0, notiket text, stamp timestamp);")
 
 questions = {
@@ -126,12 +127,12 @@ chList = {
 }
 
 faultyReplies = {
-    3: 'Coba periksa lagi nomor yang kamu tulis.',
-    5: 'Sepertinya bidang yang kamu pilih tidak ada. Coba periksa lagi.',
-    6: 'Sepertinya tipe test yang kamu pilih tidak ada. Coba periksa lagi.',
-    7: 'Sepertinya fakultas yang kamu pilih tidak ada. Coba periksa lagi.',
-    8: 'Sepertinya fakultas yang kamu pilih tidak ada. Coba periksa lagi.',
-    9:  'Sepertinya fakultas yang kamu pilih tidak ada. Coba periksa lagi.',
+    3: 'Coba periksa lagi nomor yang kamu tulis.\n\n',
+    5: 'Sepertinya bidang yang kamu pilih tidak ada. Coba periksa lagi.\n\n',
+    6: 'Sepertinya tipe test yang kamu pilih tidak ada. Coba periksa lagi.\n\n',
+    7: 'Sepertinya fakultas yang kamu pilih tidak ada. Coba periksa lagi.\n\n',
+    8: 'Sepertinya fakultas yang kamu pilih tidak ada. Coba periksa lagi.\n\n',
+    9:  'Sepertinya fakultas yang kamu pilih tidak ada. Coba periksa lagi.\n\n',
 }
 
 kuotapresale = {
@@ -153,11 +154,23 @@ def registCommand(message, user, firstrun):
     if not firstrun:
         if (stepVar[step] is not False): # Normal processes
             if (step in optional and message == '-') or ((step not in reRegex) and (step not in chList)) or (step in reRegex and re.match(reRegex[step], message)) or ((step in chList) and (message.upper() in chList[step])):
-                cursor.execute(sql.SQL("update gst19 set {}=%s where user_id=%s").format(sql.Identifier(stepVar[step])), (message, user))
-                step = nextStep[step]
-                cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
+                if step == 6:
+                    cursor.execute('select countcbt from glv where uniq=%s', ('u'))
+                    countcbt = cursor.fetchone()[0]
+                    if countcbt < 150:
+                        countcbt += 1
+                        cursor.execute(sql.SQL("update gst19 set {}=%s where user_id=%s").format(sql.Identifier(stepVar[step])), (message, user))
+                        cursor.execute('update glv set countcbt=%s where uniq=%s', (countcbt, 'u'))
+                        step = nextStep[step]
+                        cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
+                    else:
+                        reply += 'Kuota untuk CBT sudah penuh! silakan pilih tipe test PBT.\n\n'
+                else:
+                    cursor.execute(sql.SQL("update gst19 set {}=%s where user_id=%s").format(sql.Identifier(stepVar[step])), (message, user))
+                    step = nextStep[step]
+                    cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
             else:
-                if (step in faultyReplies):
+                if (abs(step) in faultyReplies):
                     reply += faultyReplies[abs(step)]
         else: # uniq processes
             if step == 10:
@@ -176,8 +189,14 @@ def registCommand(message, user, firstrun):
                     cursor.execute("update gst19 set state=%s where user_id=%s", (step, user))
                     cursor.execute("update gst19 set stamp=statement_timestamp() where user_id=%s", (user,))
     if abs(step) in questions: # Normal responses
-        reply += questions[abs(step)]
-        return reply
+        if step == 6: 
+            cursor.execute('select countcbt from glv where uniq=%s', ('u'))
+            countcbt = cursor.fetchone()[0]
+            reply += questions[abs(step)] + '\n\nKuota untuk tes CBT tersisa ' + str(150 - int(countcbt))
+            return reply 
+        else:
+            reply += questions[abs(step)]
+            return reply
     else: # uniq responses
         if step == 10:
             cursor.execute("select state, nama, sekolah, no_hp, id_line, bidang, test, fakultas1, fakultas2, fakultas3 from gst19 where user_id=%s", (user,))
