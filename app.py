@@ -343,8 +343,10 @@ def handle_text_message(event):
                 if jtest.upper() == 'CBT':
                     reply += '\n\nJangan lupa untuk membawa laptop atau smartphone saat hari-H!'
             else: #belum bayar
+                cursor.execute('select noref from gst19 where user_id=%s', (id,))
+                noreff = cursor.fetchone()[0]
                 reply = ("Hai, " + namalengkap + '! Sepertinya kamu belum bayar tiket ya?\n\nKalo merasa udah bayar, segera lakukan konfirmasi pembayaran ke kakak CP nya ya..' +
-                    '\n\nKalo udah konfirmasi juga, tunggu aja ya..')
+                    '\n\nKalo udah konfirmasi juga, tunggu aja ya..\n\nNomor Referensi: ' + str(noreff))
         elif text.lower() == 'kuota':
             cursor.execute('select presale from glv where  uniq=%s', ('u',))
             nopresale = cursor.fetchone()[0]
