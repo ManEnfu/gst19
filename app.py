@@ -355,6 +355,24 @@ def handle_text_message(event):
             reply = 'Tiket Ganeshout 2019 Presale ' + str(nopresale) + ' tersisa ' + str(kuotapresale[nopresale] - prescount) + ' lembar.'
         elif text.lower() == 'tutorial':
             reply = 'https://youtu.be/FPbLwgzQTeI'
+        elif text.lower() == 'ganti pbt':
+            if step >= 11:
+                cursor.execute('select test from gst19 where user_id=%s', (id,))
+                jtest = cursor.fetchone()[0]
+                if jtest.upper() == 'CBT':
+                    reply += 'Kamu akan mengganti jenis test menjadi PBT. Perlu diketahui bahwa setelah mengganti jenis test, kamu tidak bisa mengembalikan jenis test ke CBT. Ketik \'Ganti PBT konfirmasi\' untuk konfirmasi.' 
+        elif text.lower() == 'ganti pbt konfirmasi':
+            if step >= 11:
+                cursor.execute('SELECT countcbt from glv where  uniq=%s', ('u',))
+                fobjglv = cursor.fetchone()
+                cursor.execute('select test from gst19 where user_id=%s', (id,))
+                jtest = cursor.fetchone()[0]
+                countcbt = fobjglv[0]
+                if jtest.upper() == 'CBT':
+                    countcbt -= 1
+                    cursor.execute('update glv set countcbt=%s where uniq=%s', (countcbt, 'u'))
+                    cursor.execute('update gst19 set test=%s where user_id=%s', ('PBT', id))
+                    reply += 'Kamu telah mengganti jenis test menjadi PBT.'
         elif txsp[0] == '/gst19op':
             if txsp[1] == 'statref':
                 cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where noref=%s);', (txsp[2],))
@@ -406,6 +424,8 @@ def handle_text_message(event):
                 prs = txsp[2]
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
+            else:
+                reply = 'Hello there, you little sneaky...\n\nRelease 11-12-18'
         else:
             # registration processor
             if step > 0 and step < 11:
