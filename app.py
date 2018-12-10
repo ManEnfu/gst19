@@ -271,7 +271,7 @@ def handle_text_message(event):
                 if not udata[0]:
                     reply = 'tidak ada  user dengan noref ' + txsp[2]
                 else:
-                    cursor.execute('select user_id, nama, noref, bayar, notiket from gst19 where noref=%s;', (txsp[2],))
+                    cursor.execute('select * from gst19 where noref=%s;', (txsp[2],))
                     udata = cursor.fetchone()
                     for i in range(len(udata)):
                         reply += (str(udata[i]) + ' ')
@@ -362,7 +362,7 @@ def handle_text_message(event):
                 if not udata[0]:
                     reply = 'tidak ada  user dengan noref ' + txsp[2]
                 else:
-                    cursor.execute('select user_id, nama, noref, bayar, notiket from gst19 where noref=%s;', (txsp[2],))
+                    cursor.execute('select * from gst19 where noref=%s;', (txsp[2],))
                     udata = cursor.fetchone()
                     for i in range(len(udata)):
                         reply += (str(udata[i]) + ' ')
