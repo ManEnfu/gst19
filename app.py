@@ -315,6 +315,8 @@ def handle_text_message(event):
                 prs = txsp[2]
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
+            else:
+                reply = 'Hello there, you little sneaky...\n\nRelease 11-12-18'
         else:
             reply = "ketik \'daftar\' untuk mendaftar atau \'kuota\' untuk melihat kuota tiket."
     
@@ -424,7 +426,7 @@ def handle_text_message(event):
                 prs = txsp[2]
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
-            elif txsp[1] == 'version':
+            else:
                 reply = 'Hello there, you little sneaky...\n\nRelease 11-12-18'
         else:
             # registration processor
