@@ -33,6 +33,7 @@ cursor.execute('SELECT EXISTS(SELECT uniq FROM glv WHERE uniq=%s)', ('u',))
 if (not cursor.fetchone()[0]):
     cursor.execute("INSERT into glv(uniq, presale, count, count1, countb, count2, count3) values (%s, 1, 0, 0, 0, 0, 0);", ('u',))
 cursor.execute("CREATE TABLE IF NOT EXISTS gst19(user_id text, PRIMARY KEY(user_id), state integer DEFAULT 0, nama text, sekolah text, no_hp text, id_line text, bidang text, test text, fakultas1 text, fakultas2 text, fakultas3 text, presale integer DEFAULT 0, noref text, bayar integer DEFAULT 0, notiket text, stamp timestamp);")
+cursor.execute('ALTER TABLE gst19 ADD email text')
 
 questions = {
     1: "Siapa nama kamu?",
@@ -47,11 +48,11 @@ questions = {
 
     6: "Tipe test yang mau diiikuti?\n(pilih PBT atau CBT)",
 
-    7: "Pilihan fakultas ke-1?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF",
+    7: "Pilihan fakultas ke-1?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF)\n\nPilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.",
 
-    8: "Pilihan fakultas ke-2?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF",
+    8: "Pilihan fakultas ke-2?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF)\n\nPilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.",
     
-    9: "Pilihan fakultas ke-3?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF",
+    9: "Pilihan fakultas ke-3?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF)\n\nPilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.",
 }
 
 stepVar = {
@@ -140,6 +141,14 @@ kuotapresale = {
     3: 150,
 }
 
+hargatiket = {
+    1: 'Rp45.000',
+    2: 'Rp35.000',
+    3: 'Rp55.000',
+    4: 'Rp45.000',
+    5: 'Rp60.000',
+    6: 'Rp50.000'
+}
 
 def registCommand(message, user, firstrun):
     cursor.execute("select state from gst19 where user_id=%s", (user,))
@@ -212,8 +221,13 @@ def registCommand(message, user, firstrun):
                 'Jika sudah benar, silakan ketik \'konfirmasi\'. jika ada data yang ingin diubah, silakan ketik \'edit\' beserta poin yang ingin diubah. (Contoh: \'edit 4\' untuk mengubah data ID Line)')
             return reply
         if step == 11: 
-            cursor.execute('select noref from gst19 where user_id=%s', (user,))
-            noreft = cursor.fetchone()[0]
+            cursor.execute('select noref, test, fakultas1, fakultas2, fakultas3 from gst19 where user_id=%s', (user,))
+            objt = cursor.fetchone()
+            noreft, testt, pilt1, pilt2, pilt3 = objt[0], objt[1], objt[2], objt[3], objt[4]
+            if testt.upper() == 'CBT':
+                reply += 'Info: Kamu perlu memasukkan satu alamat email untuk digunakan pada saat CBT. ketik \'email <email kamu>\' untuk memasukkan alamat email.\nContoh: email contoh123@gmail.com\n\n'
+            if pilt1.upper() == 'FSRD' or pilt2.upper() == 'FSRD' or pilt3.upper() == 'FSRD':
+                reply += 'Info: Pilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.\n\n'
             reply += ('Terima kasih telah mendaftar Ganeshout 2019! Berikut adalah nomor referensi pembayaran kamu: ' + str(noreft) + '\n\nUntuk pembayaran tiketnya kamu bisa mentransfer ke rekening di bawah dan mengirimkan bukti pembayaran dengan nomor referensi yang kamu dapatkan barusan ke salah satu CP di bawah ini:\n\n' +
                 'Vailovaya\nidline: vailovayash\n1330015264856 (mandiri) a.n. Vailovaya Sinya H\n\n' + 
                 'Hanziz\nidline: hanziz\n2221-01-017359-50-1 (BRI) a.n. Muhammad Raihan Aziz\n\n' + 
@@ -316,7 +330,7 @@ def handle_text_message(event):
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
             else:
-                reply = 'Hello there, you little sneaky...\n\nRelease 11-12-18'
+                reply = 'Hello there, you little sneaky...\n\nRelease 18-12-18'
         else:
             reply = "ketik \'daftar\' untuk mendaftar atau \'kuota\' untuk melihat kuota tiket."
     
@@ -334,20 +348,24 @@ def handle_text_message(event):
             bayar = cursor.fetchone()[0]
             cursor.execute('select nama from gst19 where user_id=%s', (id,))
             namalengkap = cursor.fetchone()[0]
+            cursor.execute('select notiket, bidang, test, email, fakultas1, fakultas2, fakultas3 from gst19 where user_id=%s', (id,))
+            fobj = cursor.fetchone()
+            nomortiket, jbidang, jtest, jemail, jpil1, jpil2, jpil3 = fobj[0], fobj[1], fobj[2], fobj[3], fobj[4], fobj[5], fobj[6]
+            if jtest.upper() == 'CBT' and (jemail == '' or jemail == None):
+                reply += 'Info: Kamu perlu memasukkan satu alamat email untuk digunakan pada saat CBT. ketik \'email <email kamu>\' untuk memasukkan alamat email.\nContoh: email contoh123@gmail.com\n\n'
             if step > 0 and step < 11:
                 reply = "Kamu belum menyelesaikan pendaftaran!"
             elif bayar == 1:
-                cursor.execute('select notiket, bidang, test from gst19 where user_id=%s', (id,))
-                fobj = cursor.fetchone()
-                nomortiket, jbidang, jtest = fobj[0], fobj[1], fobj[2]
-                reply = ("Hai, " + namalengkap + '! ini tiket masuk Ganeshout kamu!\n\nPerlihatkan tiket ini ke kakak yang ada di meja registrasi ulang saat hari-H ya!\n\n' +
+                reply += ("Hai, " + namalengkap + '! ini tiket masuk Ganeshout kamu!\n\nPerlihatkan tiket ini ke kakak yang ada di meja registrasi ulang saat hari-H ya!\n\n' +
                     'Nama: ' + namalengkap + '\nNo. Tiket: ' + nomortiket + '\n' + jbidang + ' - ' + jtest)
                 if jtest.upper() == 'CBT':
-                    reply += '\n\nJangan lupa untuk membawa laptop atau smartphone saat hari-H!'
+                    reply += '\nEmail: ' + str(jemail) + '\n\nJangan lupa untuk membawa laptop atau smartphone saat hari-H!'
             else: #belum bayar
+                if jpil1.upper() == 'FSRD' or jpil2.upper() == 'FSRD' or jpil3.upper() == 'FSRD':
+                    reply += 'Info: Pilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.\n\n'
                 cursor.execute('select noref from gst19 where user_id=%s', (id,))
                 noreff = cursor.fetchone()[0]
-                reply = ("Hai, " + namalengkap + '! Sepertinya kamu belum bayar tiket ya?\n\nKalo merasa udah bayar, segera lakukan konfirmasi pembayaran ke kakak CP nya ya..' +
+                reply += ("Hai, " + namalengkap + '! Sepertinya kamu belum bayar tiket ya?\n\nKalo merasa udah bayar, segera lakukan konfirmasi pembayaran ke kakak CP nya ya..' +
                     '\n\nKalo udah konfirmasi juga, tunggu aja ya..\n\nNomor Referensi: ' + str(noreff))
         elif text.lower() == 'kuota':
             cursor.execute('select presale from glv where  uniq=%s', ('u',))
@@ -375,6 +393,12 @@ def handle_text_message(event):
                     cursor.execute('update glv set countcbt=%s where uniq=%s', (countcbt, 'u'))
                     cursor.execute('update gst19 set test=%s where user_id=%s', ('PBT', id))
                     reply += 'Kamu telah mengganti jenis test menjadi PBT.'
+        elif txsp[0].lower() == 'email':
+            if len(txsp) > 1:
+                cursor.execute('update gst19 set email=%s where user_id=%s;', (txsp[1], id))
+                reply += 'Kamu telah memasukkan email ' + txsp[1] + '. Kamu akan menggunakan email  ini  pada saat CBT.'
+            else:
+                reply += 'ketik \'email <email kamu>\' untuk memasukkan alamat email.\nContoh: email contoh123@gmail.com'
         elif txsp[0] == '/gst19op':
             if txsp[1] == 'statref':
                 cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where noref=%s);', (txsp[2],))
@@ -427,7 +451,7 @@ def handle_text_message(event):
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
             else:
-                reply = 'Hello there, you little sneaky...\n\nRelease 11-12-18'
+                reply = 'Hello there, you little sneaky...\n\nRelease 18-12-18'
         else:
             # registration processor
             if step > 0 and step < 11:
