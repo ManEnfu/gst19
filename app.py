@@ -13,6 +13,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
+
 app = Flask(__name__)
 # get LINE_CHANNEL_ACCESS_TOKEN from your environment variable
 line_bot_api = LineBotApi(
@@ -24,6 +25,7 @@ handler = WebhookHandler(
     config("LINE_CHANNEL_SECRET",
            default=os.environ.get('LINE_CHANNEL_SECRET'))
 )
+
 connection = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
 connection.set_session(autocommit=True)
 
@@ -46,7 +48,7 @@ questions = {
 
     5: "Kamu pilih bidang apa?\n(pilih SAINTEK atau SOSHUM)",
 
-    6: "Tipe test yang mau diiikuti?\n(pilih PBT atau CBT)",
+    6: "Tipe test yang mau diiikuti?\n(pilih PBT)",
 
     7: "Pilihan fakultas ke-1?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF)\n\nPilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.",
 
@@ -115,12 +117,12 @@ reRegex = {
 
 chList = {
     5: ['SAINTEK', 'SOSHUM'],
-    6: ['PBT', 'CBT'],
+    6: ['PBT'],
     7: ['FMIPA', 'FTI', 'FTMD', 'FITB', 'FTTM', 'FTSL', 'FSRD', 'STEI', 'SBM', 'SITHR', 'SITHS', 'SAPPK', 'SF'],
     8: ['FMIPA', 'FTI', 'FTMD', 'FITB', 'FTTM', 'FTSL', 'FSRD', 'STEI', 'SBM', 'SITHR', 'SITHS', 'SAPPK', 'SF'],
     9: ['FMIPA', 'FTI', 'FTMD', 'FITB', 'FTTM', 'FTSL', 'FSRD', 'STEI', 'SBM', 'SITHR', 'SITHS', 'SAPPK', 'SF'],
     -5: ['SAINTEK', 'SOSHUM'],
-    -6: ['PBT', 'CBT'],
+    -6: ['PBT'],
     -7: ['FMIPA', 'FTI', 'FTMD', 'FITB', 'FTTM', 'FTSL', 'FSRD', 'STEI', 'SBM', 'SITHR', 'SITHS', 'SAPPK', 'SF'],
     -8: ['FMIPA', 'FTI', 'FTMD', 'FITB', 'FTTM', 'FTSL', 'FSRD', 'STEI', 'SBM', 'SITHR', 'SITHS', 'SAPPK', 'SF'],
     -9: ['FMIPA', 'FTI', 'FTMD', 'FITB', 'FTTM', 'FTSL', 'FSRD', 'STEI', 'SBM', 'SITHR', 'SITHS', 'SAPPK', 'SF'],
@@ -231,7 +233,7 @@ def registCommand(message, user, firstrun):
             reply += ('Terima kasih telah mendaftar Ganeshout 2019! Berikut adalah nomor referensi pembayaran kamu: ' + str(noreft) + '\n\nUntuk pembayaran tiketnya kamu bisa mentransfer ke rekening di bawah dan mengirimkan bukti pembayaran dengan nomor referensi yang kamu dapatkan barusan ke salah satu CP di bawah ini:\n\n' +
                 'Vailovaya\nidline: vailovayash\n1330015264856 (mandiri) a.n. Vailovaya Sinya H\n\n' + 
                 'Hanziz\nidline: hanziz\n2221-01-017359-50-1 (BRI) a.n. Muhammad Raihan Aziz\n\n' + 
-                'Davita\nidline: davitaf9\n0953815611 (BCA) a.n. Davita Fauziyyah Widodo\n\n' + 
+                'Raihan\nidline: raihanpepee\n6042127104 (BCA) a.n Raihan\n\n' +
                 'D\'lora\nidline: loraloreng\n733523132 (BNI) a.n. D\'lora Barada Wahab')
             return reply
                     
@@ -330,7 +332,7 @@ def handle_text_message(event):
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
             else:
-                reply = 'Hello there, you little sneaky...\n\nRelease 18-12-18'
+                reply = 'Hello there, you little sneaky...\n\nRelease 19-01-02'
         else:
             reply = "ketik \'daftar\' untuk mendaftar atau \'kuota\' untuk melihat kuota tiket."
     
@@ -451,7 +453,7 @@ def handle_text_message(event):
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
             else:
-                reply = 'Hello there, you little sneaky...\n\nRelease 18-12-18'
+                reply = 'Hello there, you little sneaky...\n\nRelease 19-01-02'
         else:
             # registration processor
             if step > 0 and step < 11:
