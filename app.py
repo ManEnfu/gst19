@@ -35,7 +35,9 @@ cursor.execute('SELECT EXISTS(SELECT uniq FROM glv WHERE uniq=%s)', ('u',))
 if (not cursor.fetchone()[0]):
     cursor.execute("INSERT into glv(uniq, presale, count, count1, countb, count2, count3) values (%s, 1, 0, 0, 0, 0, 0);", ('u',))
 cursor.execute("CREATE TABLE IF NOT EXISTS gst19(user_id text, PRIMARY KEY(user_id), state integer DEFAULT 0, nama text, sekolah text, no_hp text, id_line text, bidang text, test text, fakultas1 text, fakultas2 text, fakultas3 text, presale integer DEFAULT 0, noref text, bayar integer DEFAULT 0, notiket text, stamp timestamp);")
-#cursor.execute('ALTER TABLE gst19 ADD email text')
+cursor.execute('ALTER TABLE gst19 ADD nama_b text')
+cursor.execute('ALTER TABLE gst19 ADD noref_b text')
+#cursor.execute('ALTER TABLE gst19 ADD b_status integer DEFAULT 0')
 
 questions = {
     1: "Siapa nama kamu?",
@@ -55,6 +57,10 @@ questions = {
     8: "Pilihan fakultas ke-2?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF)\n\nPilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.",
     
     9: "Pilihan fakultas ke-3?\n(pilih salah satu: FMIPA, FTI, FTMD, FITB, FTTM, FTSL, FSRD, STEI, SBM, SITHR, SITHS, SAPPK, SF)\n\nPilihan FSRD dikenakan tambahan harga sebesar Rp10.000 untuk tes keterampilan.",
+
+    21: "Siapa nama kamu? (Nama harus sama dengan yang kamu masukkan saat mendaftar)",
+
+    22: "Berapa nomor referensi kamu? (Jika lupa kamu dapat menghubungi CP saat kamu melakukan konfirmasi pembayaran)" 
 }
 
 stepVar = {
@@ -69,6 +75,8 @@ stepVar = {
     9: 'fakultas3',
     10: False,
     11: False,
+    21: 'nama_b',
+    22: 'noref_b',
     -1: 'nama',
     -2: 'sekolah',
     -3: 'no_hp',
@@ -92,6 +100,9 @@ nextStep = {
     9: 10,
     10: 11,
     11: 12,
+    21: 22,
+    22: 23,
+    23: 24,
     -1: 10,
     -2: 10,
     -3: 10,
@@ -236,7 +247,24 @@ def registCommand(message, user, firstrun):
                 'Raihan\nidline: raihanpepee\n6042127104 (BCA) a.n Raihan\n\n' +
                 'D\'lora\nidline: loraloreng\n733523132 (BNI) a.n. D\'lora Barada Wahab')
             return reply
-                    
+        if step == 23:
+            cursor.execute('select user_id, nama_b, noref_b from gst19 where user_id=%s', (user,))
+            bdata = cursor.fetchone()
+            cursor.execute('select exists(select user_id, nama, noref from gst19 where noref=%s)', (bdata[2],))
+            if (cursor.fetchone()[0]):
+                cursor.execute('select user_id, nama, noref from gst19 where noref=%s', (bdata[2],))
+                tdata = cursor.fetchone()
+                if (bdata[1] == tdata[1]) and (bdata[2] == tdata[2]):
+                    cursor.execute('update gst19 set user_id=%s where user_id=%s', (bdata[0] + '_temp', bdata[0]))
+                    cursor.execute('update gst19 set user_id=%s where user_id=%s', (bdata[0], tdata[0]))
+                    cursor.execute('update gst19 set user_id=%s where user_id=%s', (tdata[0], bdata[0]+ '_temp'))
+                    reply += 'Backup selesai. silakan ketik \'tiket\' untuk melihat tiket.'
+                else:
+                    reply += 'Nama dan nomor referensi tidak sesuai. Silakan coba lagi dengan mengetik \'backup tiket\''
+            else:
+                reply += 'Nama dan nomor referensi tidak sesuai. Silakan coba lagi dengan mengetik \'backup tiket\''
+            return reply
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -280,6 +308,9 @@ def handle_text_message(event):
             reply = 'Tiket Ganeshout 2019 Presale ' + str(nopresale) + ' tersisa ' + str(kuotapresale[nopresale] - prescount) + ' lembar.'
         elif text.lower() == 'tutorial':
             reply = 'https://youtu.be/FPbLwgzQTeI'
+        elif text.lower() == 'backup tiket':
+            cursor.execute("insert into gst19(user_id, stamp, state) values (%s, statement_timestamp(), 21);", (id,))
+            reply = registCommand(text, id, True)
         elif txsp[0] == '/gst19op':
             if txsp[1] == 'statref':
                 cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where noref=%s);', (txsp[2],))
@@ -332,9 +363,9 @@ def handle_text_message(event):
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
             else:
-                reply = 'Hello there, you little sneaky...\n\nRelease 19-01-02'
+                reply = 'Hello there, you little sneaky...\n\nRelease 19-01-04'
         else:
-            reply = "ketik \'daftar\' untuk mendaftar atau \'kuota\' untuk melihat kuota tiket."
+            reply += "ketik \'daftar\' untuk mendaftar atau \'kuota\' untuk melihat kuota tiket."
     
     # in database
     else:
@@ -401,6 +432,9 @@ def handle_text_message(event):
                 reply += 'Kamu telah memasukkan email ' + txsp[1] + '. Kamu akan menggunakan email  ini  pada saat CBT.'
             else:
                 reply += 'ketik \'email <email kamu>\' untuk memasukkan alamat email.\nContoh: email contoh123@gmail.com'
+        elif text.lower() == 'backup tiket':
+            cursor.execute('update gst19 set state=%s where user_id=%s;', (21, id))
+            reply = registCommand(text, id, True)
         elif txsp[0] == '/gst19op':
             if txsp[1] == 'statref':
                 cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where noref=%s);', (txsp[2],))
@@ -452,11 +486,14 @@ def handle_text_message(event):
                 prs = txsp[2]
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
+            elif txsp[1] == 'unlink':
+                cursor.execute('update gst19 set user_id=%s where user_id=%s', (id + '_unlinked', id))
+                reply = 'unlinked'
             else:
-                reply = 'Hello there, you little sneaky...\n\nRelease 19-01-02'
+                reply = 'Hello there, you little sneaky...\n\nRelease 19-01-04'
         else:
             # registration processor
-            if step > 0 and step < 11:
+            if (step > 0 and step < 11) or (step > 20 and step < 23):
                 reply = registCommand(text, id, False)
             else:
                 reply = "Ketik \'tiket\' untuk melihat tiket kamu."
