@@ -494,7 +494,7 @@ def handle_text_message(event):
         else:
             # registration processor
             if (step > 0 and step < 11) or (step > 20 and step < 23):
-                #reply = registCommand(text, id, False)
+                reply = "Ketik \'tiket\' untuk melihat tiket kamu."#registCommand(text, id, False)
             else:
                 reply = "Ketik \'tiket\' untuk melihat tiket kamu."
 
