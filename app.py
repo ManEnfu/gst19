@@ -295,7 +295,7 @@ def handle_text_message(event):
     cursor.execute("select exists(select user_id from gst19 where user_id=%s)", (id,))
     # not in database
     if (not cursor.fetchone()[0]):
-        if text.lower() == 'daftar':
+        if text.lower() == '/gst19opioiepejopdaftar':
             cursor.execute("insert into gst19(user_id, stamp, state) values (%s, statement_timestamp(), 1);", (id,))
             reply = registCommand(text, id, True)
         elif text.lower() == 'tiket':
@@ -371,7 +371,7 @@ def handle_text_message(event):
     else:
         cursor.execute("select state from gst19 where user_id=%s", (id,))
         step = abs(cursor.fetchone()[0])
-        if text.lower() == 'daftar':
+        if text.lower() == '/gst19popjopjdaftar':
             if step > 0 and step < 11:
                 reply = "Kamu sedang melakukan pendaftaran!"
             else:
@@ -494,7 +494,7 @@ def handle_text_message(event):
         else:
             # registration processor
             if (step > 0 and step < 11) or (step > 20 and step < 23):
-                reply = registCommand(text, id, False)
+                #reply = registCommand(text, id, False)
             else:
                 reply = "Ketik \'tiket\' untuk melihat tiket kamu."
 
