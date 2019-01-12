@@ -35,8 +35,8 @@ cursor.execute('SELECT EXISTS(SELECT uniq FROM glv WHERE uniq=%s)', ('u',))
 if (not cursor.fetchone()[0]):
     cursor.execute("INSERT into glv(uniq, presale, count, count1, countb, count2, count3) values (%s, 1, 0, 0, 0, 0, 0);", ('u',))
 cursor.execute("CREATE TABLE IF NOT EXISTS gst19(user_id text, PRIMARY KEY(user_id), state integer DEFAULT 0, nama text, sekolah text, no_hp text, id_line text, bidang text, test text, fakultas1 text, fakultas2 text, fakultas3 text, presale integer DEFAULT 0, noref text, bayar integer DEFAULT 0, notiket text, stamp timestamp);")
-#cursor.execute('ALTER TABLE gst19 ADD nama_b text')
-#cursor.execute('ALTER TABLE gst19 ADD noref_b text')
+cursor.execute('ALTER TABLE gst19 ADD panitia integer DEFAULT 0')
+cursor.execute('ALTER TABLE gst19 ADD hadir integer  DEFAULT 0')
 #cursor.execute('ALTER TABLE gst19 ADD b_status integer DEFAULT 0')
 
 questions = {
@@ -362,6 +362,12 @@ def handle_text_message(event):
                 prs = txsp[2]
                 cursor.execute('UPDATE glv set presale=%s where uniq=%s', (int(prs), 'u'))
                 reply = 'update ke presale' + txsp[2]
+            elif txsp[1] == 'addreg':
+                cursor.execute("insert into gst19(user_id, stamp, panitia) values (%s, statement_timestamp(), 1);", (id,))
+                reply = 'addreg'
+            elif txsp[1] == 'addregn':
+                cursor.execute("insert into gst19(user_id, stamp, panitia) values (%s, statement_timestamp(), 0);", (id,))
+                reply = 'addregn'
             else:
                 reply = 'Hello there, you little sneaky...\n\nRelease 19-01-04'
         else:
@@ -369,8 +375,9 @@ def handle_text_message(event):
     
     # in database
     else:
-        cursor.execute("select state from gst19 where user_id=%s", (id,))
-        step = abs(cursor.fetchone()[0])
+        cursor.execute("select state, panitia from gst19 where user_id=%s", (id,))
+        robj = cursor.fetchone()
+        step = abs(robj[0])
         if text.lower() == '/gst19popjopjdaftar':
             if step > 0 and step < 11:
                 reply = "Kamu sedang melakukan pendaftaran!"
@@ -489,11 +496,27 @@ def handle_text_message(event):
             elif txsp[1] == 'unlink':
                 cursor.execute('update gst19 set user_id=%s where user_id=%s', (id + '_unlinked', id))
                 reply = 'unlinked'
+            elif txsp[1] == 'addreg':
+                cursor.execute("update gst19 set panitia=1 where user_id=%s", (id,))
+                reply = 'addreg'
+            elif txsp[1] == 'addregn':
+                cursor.execute("update gst19 set panitia=0 where user_id=%s", (id,))
+                reply = 'addregn'
             else:
                 reply = 'Hello there, you little sneaky...\n\nRelease 19-01-04'
         else:
             # registration processor
-            if (step > 0 and step < 11) or (step > 20 and step < 23):
+            if robj[1] == 1:
+                notik = "022-01-" + str(txsp[0])
+                cursor.execute('select exists(select user_id, nama, noref, bayar, notiket from gst19 where notiket=%s);', (notik,))
+                if not cursor.fetchone()[0]:
+                    reply = 'tidak ada  user dengan notiket ' + str(notik)
+                else:
+                    cursor.execute('select nama, notiket from gst19 where notiket=%s;', (notik,))
+                    udata = cursor.fetchone()
+                    cursor.execute("update gst19 set hadir=1 where notiket=%s", (notik,))
+                    reply = udata[1] + ' ' + udata[0]
+            elif (step > 0 and step < 11) or (step > 20 and step < 23):
                 reply = "Ketik \'tiket\' untuk melihat tiket kamu."#registCommand(text, id, False)
             else:
                 reply = "Ketik \'tiket\' untuk melihat tiket kamu."
